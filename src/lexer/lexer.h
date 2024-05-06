@@ -14,24 +14,29 @@ enum token_type {
     MINUS,
     MUL,
     DIV,
+    COMMA,
     LPAREN,
     RPAREN,
+    EQ,
+    ID,
     END
 };
 
 struct token {
     token_type type;
-    int value;
+    double value;
+    std::string id;
 };
 
 class lexer {
     std::string text;
-    int pos = 0;
+    size_t pos = 0;
     char current_char;
     void error();
     void advance();
     void skip_whitespace();
-    int integer();
+    double number();
+    std::string id();
 public:
     lexer();
 
@@ -41,7 +46,6 @@ public:
 
 };
 
-std::string token_type_to_string(token_type type);
 char token_to_char(token_type type);
 
 

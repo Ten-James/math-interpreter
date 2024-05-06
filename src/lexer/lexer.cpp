@@ -3,34 +3,15 @@
 //
 
 #include <stdexcept>
+#include <utility>
 #include "lexer.h"
 
 lexer::lexer() {
     this->text = "";
     this->pos = 0;
+    this->current_char = '\0';
 }
 
-std::string token_type_to_string(token_type type) {
-    switch (type) {
-        case NUM:
-            return "NUM";
-        case PLUS:
-            return "PLUS";
-        case MINUS:
-            return "MINUS";
-        case MUL:
-            return "MUL";
-        case DIV:
-            return "DIV";
-        case LPAREN:
-            return "LPAREN";
-        case RPAREN:
-            return "RPAREN";
-        case END:
-            return "END";
-
-    }
-}
 
 char token_to_char(token_type type) {
     switch (type) {
@@ -48,19 +29,26 @@ char token_to_char(token_type type) {
             return '(';
         case RPAREN:
             return ')';
+        case COMMA:
+            return ',';
+        case EQ:
+            return '=';
+        case ID:
+            return 'i';
         case END:
             return '\0';
     }
+    return '\0';
 }
 
 void lexer::reset(std::string text) {
-    this->text = text;
+    this->text = std::move(text);
     this->pos = 0;
 }
 
 std::vector<token> lexer::lex() {
     std::vector<token> tokens;
-    int max = this->text.size();
+    size_t max = text.size();
     this->current_char = this->text[this->pos];
     while (this->pos < max) {
         switch (this->current_char) {
@@ -85,6 +73,10 @@ std::vector<token> lexer::lex() {
                 tokens.push_back(token {DIV, 0});
                 this->advance();
                 break;
+            case ',':
+                tokens.push_back(token {COMMA, 0});
+                this->advance();
+                break;
             case '(':
                 tokens.push_back(token {LPAREN, 0});
                 this->advance();
@@ -93,10 +85,21 @@ std::vector<token> lexer::lex() {
                 tokens.push_back(token {RPAREN, 0});
                 this->advance();
                 break;
+            case '=':
+                tokens.push_back(token {EQ, 0});
+                this->advance();
+                break;
             default:
                 if (this->current_char >= '0' && this->current_char <= '9') {
-                    tokens.push_back(token {NUM, this->integer()});
-                } else {
+                    tokens.push_back(token {NUM, this->number()});
+                }
+                else if (this->current_char >= 'a' && this->current_char <= 'z')
+                {
+                    tokens.push_back(token {ID,
+                        .id = this->id()
+                    });
+                }
+                else {
                     this->error();
                 }
         }
@@ -126,10 +129,33 @@ void lexer::skip_whitespace() {
     }
 }
 
-int lexer::integer() {
-    int result = 0;
+double lexer::number() {
+    //lex number in [0-9]+(.[0-9]+)?
+    std::string result;
     while (this->current_char >= '0' && this->current_char <= '9') {
-        result = result * 10 + (this->current_char - '0');
+        result += this->current_char;
+        this->advance();
+    }
+
+    if (this->current_char == '.') {
+        result += this->current_char;
+        this->advance();
+
+        while (this->current_char >= '0' && this->current_char <= '9') {
+            result += this->current_char;
+            this->advance();
+        }
+    }
+
+    return std::stod(result);
+}
+
+std::string lexer::id()
+{
+    std::string result;
+    while (this->current_char >= 'a' && this->current_char <= 'z')
+    {
+        result += this->current_char;
         this->advance();
     }
     return result;

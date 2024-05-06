@@ -4,14 +4,16 @@
 
 #ifndef OOP2_IO_H
 #define OOP2_IO_H
-#include "lexer.h"
-#include "ast/AstNode.h"
+#include "../lexer/lexer.h"
+#include "../ast/AstNode.h"
+#include "../interpreter/Interpreter.h"
 
 class io {
 public:
-    void printTokens(std::vector<token> tokens);
     void printAst(AstNode* node);
     std::string readText();
+    void printResult(ReturnValue result);
+    void printError(const char* error);
 
 };
 

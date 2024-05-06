@@ -4,9 +4,9 @@
 
 #ifndef OOP2_PROGRAM_H
 #define OOP2_PROGRAM_H
-#include "lexer.h"
-#include "parser.h"
-#include "io.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
+#include "io/io.h"
 
 
 class Program {
@@ -16,6 +16,7 @@ class Program {
 public:
     void run();
     void run(std::string text);
+    void whileLoop();
 
 };
 

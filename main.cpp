@@ -1,10 +1,11 @@
 #include <iostream>
-#include "Program.h"
+#include "src/Program.h"
 
 int main() {
+    std::srand(std::time(nullptr));
     Program program;
 
-    program.run("10+5*3+2/3");
+    program.whileLoop();
 
     return 0;
 }
