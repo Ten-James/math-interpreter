@@ -1,0 +1,304 @@
+@startuml
+
+
+
+
+
+/' Objects '/
+
+class AstDefinition {
+	+AstDefinition(std::string name, AstNode* value)
+	+~AstDefinition()
+	+copy() : AstNode*
+	+get_value() : AstNode* {query}
+	-value : AstNode*
+	+get_type() : int {query}
+	+get_name() : std::string {query}
+	-name : std::string
+	+print(std::string offset) : void
+	+undefine() : void
+}
+
+
+class AstFunDefinition {
+	+AstFunDefinition(std::string name, AstNode* value, std::vector<std::string> args)
+	+copy() : AstNode*
+	+get_type() : int {query}
+	-args : std::vector<std::string>
+	+get_args() : std::vector<std::string>& {query}
+	+print(std::string offset) : void
+}
+
+
+class AstFunction {
+	+AstFunction(std::string name, std::vector<AstNode*> args)
+	+~AstFunction()
+	+copy() : AstNode*
+	+get_type() : int {query}
+	-name : std::string
+	+get_name() : std::string& {query}
+	-args : std::vector<AstNode*>
+	+get_args() : std::vector<AstNode*>& {query}
+	+print(std::string offset) : void
+}
+
+
+abstract class AstNode {
+	+~AstNode()
+	+{abstract} copy() : AstNode*
+	+{abstract} get_type() : int {query}
+	+{abstract} print(std::string offset) : void
+}
+
+
+class AstNumber {
+	+AstNumber(double value)
+	+copy() : AstNode*
+	+get_value() : double {query}
+	-value : double
+	+get_type() : int {query}
+	+print(std::string offset) : void
+}
+
+
+class AstOperator {
+	+AstOperator(char op, AstNode* left, AstNode* right)
+	+~AstOperator()
+	+copy() : AstNode*
+	+get_left() : AstNode* {query}
+	+get_right() : AstNode* {query}
+	-left : AstNode*
+	-right : AstNode*
+	+get_op() : char {query}
+	-op : char
+	+get_type() : int {query}
+	+print(std::string offset) : void
+}
+
+
+class AstUnary {
+	+AstUnary(char op, AstNode* expr)
+	+~AstUnary()
+	+copy() : AstNode*
+	-expr : AstNode*
+	+get_expr() : AstNode* {query}
+	+get_op() : char {query}
+	-op : char
+	+get_type() : int {query}
+	+print(std::string offset) : void
+}
+
+
+class AstVariable {
+	+AstVariable(std::string name)
+	+copy() : AstNode*
+	+get_type() : int {query}
+	+get_name() : std::string {query}
+	-name : std::string
+	+print(std::string offset) : void
+}
+
+
+class ConstantDefinition {
+	+ConstantDefinition(std::string name, AstNode* value)
+	+visit() : ReturnValue
+}
+
+
+abstract class Definition {
+	+Definition(std::string name, AstNode* value)
+	+~Definition()
+	+value : AstNode*
+	+{abstract} visit() : ReturnValue
+	+name : std::string
+}
+
+
+class FunctionDefinition {
+	+FunctionDefinition(std::string name, std::vector<std::string> args, AstNode* value)
+	+visit() : ReturnValue
+	+visit(const AstFunction* function) : ReturnValue
+	-args : std::vector<std::string>
+	+get_args() : std::vector<std::string>&
+}
+
+
+class Interpreter {
+	+{static} add_definition(AstDefinition* definition) : ReturnValue
+	+{static} add_definition(AstFunDefinition* definition) : ReturnValue
+	+{static} interpret(AstNode* node, std::vector<Definition*> local_scope) : ReturnValue
+	-{static} visit(AstNode* node, std::vector<Definition*> local_scope) : ReturnValue
+	-{static} definitions : static std::vector<Definition*>
+}
+
+
+class Program {
+	-inputOutput : io
+	-lex : lexer
+	-parse : parser
+	+run() : void
+	+run(std::string text) : void
+	+whileLoop() : void
+}
+
+
+class io {
+	+readText() : std::string
+	+printAst(AstNode* node) : void
+	+printError(const char* error) : void
+	+printResult(ReturnValue result) : void
+}
+
+
+class lexer {
+	+lexer()
+	-current_char : char
+	-number() : double
+	-pos : size_t
+	-id() : std::string
+	-text : std::string
+	+lex() : std::vector<token>
+	-advance() : void
+	-error() : void
+	+reset(std::string text) : void
+	-skip_whitespace() : void
+}
+
+
+class parser {
+	+parser()
+	-definition() : AstNode*
+	-expr() : AstNode*
+	-factor() : AstNode*
+	-line() : AstNode*
+	+parse() : AstNode*
+	-term() : AstNode*
+	-pos : int
+	-tokens : std::vector<token>
+	-current_token : token
+	-advance() : void
+	-eat(token_type type) : void
+	-error() : void
+	-error(std::string message) : void
+	+reset(std::vector<token> tokens) : void
+}
+
+
+enum AstType {
+	DEFINITION
+	FUNCTION
+	FUN_DEFINITION
+	NUMBER
+	OPERATOR
+	UNARY
+	VARIABLE
+}
+
+
+enum token_type {
+	COMMA
+	DIV
+	END
+	EQ
+	ID
+	LPAREN
+	MINUS
+	MUL
+	NUM
+	PLUS
+	RPAREN
+}
+
+
+class ReturnValue {
+	+isReturn : bool
+	+value : double
+}
+
+
+class token {
+	+value : double
+	+id : std::string
+	+type : token_type
+}
+
+
+
+
+
+/' Inheritance relationships '/
+
+.AstDefinition <|-- .AstFunDefinition
+
+
+.AstNode <|-- .AstDefinition
+
+
+.AstNode <|-- .AstFunction
+
+
+.AstNode <|-- .AstNumber
+
+
+.AstNode <|-- .AstOperator
+
+
+.AstNode <|-- .AstUnary
+
+
+.AstNode <|-- .AstVariable
+
+
+.Definition <|-- .ConstantDefinition
+
+
+.Definition <|-- .FunctionDefinition
+
+
+
+
+
+/' Aggregation relationships '/
+
+.AstDefinition o-- .AstNode
+
+
+.AstFunction o-- .AstNode
+
+
+.AstOperator "2" o-- .AstNode
+
+
+.AstUnary o-- .AstNode
+
+
+.Definition o-- .AstNode
+
+
+.Interpreter o-- .Definition
+
+
+.Program *-- .io
+
+
+.Program *-- .lexer
+
+
+.Program *-- .parser
+
+
+.parser "2" *-- .token
+
+
+.token *-- .token_type
+
+
+
+
+
+
+/' Nested objects '/
+
+
+
+@enduml
